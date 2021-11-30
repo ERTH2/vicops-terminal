@@ -34,7 +34,12 @@ async function handle(){
         console.log(transaction);
     } else if(resp==="курс"){
         let name = await sr.input("text", "Название котировки: ");
-        console.log("Курс ")
+        console.log(`Курс ${name}: ${(await user.getCourse(name)).amount}`)
+    } else if(resp==="обмен"){
+        let swap = await user.swap(await sr.input("text", "Название котировки: "), await sr.input("text", "Название валюты с которой менять: "), await sr.input("text", "Название валюты на которую менять: "), Number(await sr.input("text", "Количество единиц валюты для обмена: ")))
+        console.log(swap);
+    } else{
+        utils.printHelp();
     }
     handle();
 }
