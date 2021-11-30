@@ -15,19 +15,19 @@ async function handle(){
         user.register(await sr.input("text", "Введите электронную почту для восстановления: "));
     } else if(resp==="войти"){
         user = new vicopsApi(await sr.input("text", "Введите логин: "), await sr.input("secure", "Введите пароль: "));
-        let balances = (await user.getUser())?.private?.balances;
+        let balances = (await user.getUser()).private; if(balances) balances = balances.balances;
         console.log("Активы:")
         if(balances) utils.printBal(balances);
         else console.log(await user.getUser());
     } else if(resp==="помощь") {
         utils.printHelp();
     } else if(resp==="баланс"){
-        let balances = (await user.getUser())?.private?.balances;
+        let balances = (await user.getUser()).private; if(balances) balances = balances.balances;
         if(balances) utils.printBal(balances);
         else console.log(await user.getUser());
     } else if(resp==="история"){
-        let balances = (await user.getUser())?.private?.transactions;
-        if(balances) utils.printTrans(balances, user.name);
+        let transactions = (await user.getUser()).private; if(transactions) transactions = transactions.transactions;
+        if(transactions) utils.printTrans(transactions, user.name);
         else console.log(await user.getUser());
     } else if(resp==="транзакция"){
         let transaction = await user.transaction(await sr.input("text", "Получатель: "), Number(await sr.input("text", "Количество: ")), await sr.input("text", "Валюта: "), await sr.input("text", "Комментарий: "));
