@@ -13,7 +13,8 @@ async function handle(){
 
     if(resp==="регистрация"){
         user = new vicopsApi(await sr.input("text", "Введите логин: "), await sr.input("secure", "Введите пароль: "));
-        user.register(await sr.input("text", "Введите электронную почту для восстановления: "));
+        let response = await user.register(await sr.input("text", "Введите электронную почту для восстановления: "));
+        console.log(response)
     } else if(resp==="войти"){
         user = new vicopsApi(await sr.input("text", "Введите логин: "), await sr.input("secure", "Введите пароль: "));
         let balances = (await user.getUser()).private; if(balances) balances = balances.balances;
