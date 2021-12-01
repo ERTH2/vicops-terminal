@@ -5,7 +5,7 @@ module.exports = {
         for(let i=0; i<curr.length; i++) console.log(`${vals[i]} ${curr[i]}`);
     },
     printHelp:()=>{
-        let help = ["регистрация", "транзакция", "история", "баланс", "обмен", "курс", "помощь"]
+        let help = ["регистрация", "войти", "транзакция", "история", "баланс", "обмен", "курс", "помощь"]
         for(let h of help) console.log(h.rainbow);
     },
     printTrans:(transactions, name)=>{
