@@ -1,3 +1,5 @@
+const colors = require('colors');
+
 module.exports = {
     printBal:(balances)=>{
         let curr = Object.keys(balances);
@@ -6,12 +8,12 @@ module.exports = {
     },
     printHelp:()=>{
         let help = ["регистрация", "транзакция", "история", "баланс", "обмен", "курс", "помощь"]
-        for(let h of help) console.log(h);
+        for(let h of help) console.log(h.rainbow);
     },
     printTrans:(transactions, name)=>{
         for(let transaction of transactions){
-            if(transaction.body.recipient===name) console.log(`+ ${transaction.body.amount.toFixed(5)} ${transaction.body.currency} от ${transaction.body.sender}. Комментарий: ${transaction.body.comment}`);
-            else console.log(`- ${transaction.body.amount.toFixed(5)} ${transaction.body.currency} отправлено ${transaction.body.recipient}. Комментарий: ${transaction.body.comment}`);
+            if(transaction.body.recipient===name) console.log(`${`+ ${transaction.body.amount.toFixed(5)} ${transaction.body.currency}`.green} от ${transaction.body.sender}. Комментарий: ${transaction.body.comment}`);
+            else console.log(`${`- ${transaction.body.amount.toFixed(5)} ${transaction.body.currency}`.red} отправлено ${transaction.body.recipient}. Комментарий: ${transaction.body.comment}`);
         }
     }
 }
