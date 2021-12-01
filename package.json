@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-7":"pkg index.js -o build/vicops-term-win7.exe --target node12-win32",
+    "build-7": "pkg index.js -o build/vicops-term-win7.exe --target node12-win32",
     "build": "pkg index.js -o build/vicops-term.exe --target win32"
   },
   "keywords": [],
@@ -14,6 +14,6 @@
   "dependencies": {
     "colors": "^1.4.0",
     "easy-readline": "^1.0.4",
-    "vicops-api": "^1.1.1"
+    "vicops-api": "^1.1.2"
   }
 }

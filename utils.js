@@ -1,5 +1,3 @@
-const colors = require('colors');
-
 module.exports = {
     printBal:(balances)=>{
         let curr = Object.keys(balances);
