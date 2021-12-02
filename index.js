@@ -40,7 +40,9 @@ async function handle(){
         if(course.code==="denied") console.log("Котировка не найдена".red);
         else console.log(`Курс ${name}: ${course.amount}`);
     } else if(resp==="обмен"){
-        let swap = await user.swap(await sr.input("text", "Название котировки: "), await sr.input("text", "Название валюты с которой менять: "), await sr.input("text", "Название валюты на которую менять: "), Number(await sr.input("text", "Количество единиц валюты для обмена: ")))
+        let from = await sr.input("text", "Название валюты с которой менять: ");
+        let to = await sr.input("text", "Название валюты на которую менять: ");
+        let swap = await user.swap(`${from}/${to}`, from, to, Number(await sr.input("text", "Количество единиц валюты для обмена: ")))
         console.log(swap);
     } else{
         utils.printHelp();
