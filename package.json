@@ -16,6 +16,7 @@
     "cfonts": "^2.10.0",
     "colors": "^1.4.0",
     "easy-readline": "^1.0.4",
+    "node-localstorage": "^2.2.1",
     "vicops-api": "^1.1.2"
   }
 }
