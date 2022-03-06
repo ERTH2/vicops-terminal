@@ -11,11 +11,9 @@ module.exports = {
       "транзакция",
       "история",
       "баланс",
-      "обмен",
-      "курс",
       "помощь",
     ];
-    for (let h of help) console.log(h.blue);
+    for (let h of help) console.log(h.green);
   },
   printTrans: (transactions, name) => {
     for (let transaction of transactions) {
