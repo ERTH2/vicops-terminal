@@ -4,7 +4,6 @@ const { Readline } = require("easy-readline");
 const utils = require("./utils");
 const fs = require("fs");
 let sr = new Readline();
-let user = new vicopsApi();
 
 const CFonts = require("cfonts");
 
@@ -16,6 +15,9 @@ CFonts.say("VICOPS|terminal v1.2.0", {
   env: "node",
 });
 
+let user;
+
+start();
 handle();
 
 async function handle() {
@@ -31,16 +33,6 @@ async function handle() {
       await sr.input("text", "Введите электронную почту для восстановления: ")
     );
     console.log(response);
-  } else if (resp === "войти") {
-    user = new vicopsApi(
-      await sr.input("text", "Введите логин: "),
-      await sr.input("secure", "Введите пароль: ")
-    );
-    let balances = (await user.getUser()).private;
-    if (balances) balances = balances.balances;
-    console.log("Активы:");
-    if (balances) utils.printBal(balances);
-    else console.log(await user.getUser());
   } else if (resp === "помощь") {
     utils.printHelp();
   } else if (resp === "баланс") {
@@ -65,4 +57,16 @@ async function handle() {
     utils.printHelp();
   }
   handle();
+}
+
+async function start() {
+  user = new vicopsApi(
+    await sr.input("text", "Введите логин: "),
+    await sr.input("secure", "Введите пароль: ")
+  );
+  let balances = (await user.getUser()).private;
+  if (balances) balances = balances.balances;
+  console.log("Активы:");
+  if (balances) utils.printBal(balances);
+  else console.log(await user.getUser());
 }
