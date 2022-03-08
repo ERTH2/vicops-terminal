@@ -1,6 +1,6 @@
 {
   "name": "vicops-terminal",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -17,6 +17,6 @@
     "colors": "^1.4.0",
     "easy-readline": "^1.0.4",
     "node-localstorage": "^2.2.1",
-    "vicops-api": "^1.1.2"
+    "vicops-api": "^1.2.0"
   }
 }

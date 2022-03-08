@@ -18,7 +18,7 @@ let ls = new LocalStorage(tpath);
 
 const CFonts = require("cfonts");
 
-CFonts.say("VICOPS|terminal v1.2.0", {
+CFonts.say("VICOPS|terminal v1.4.0", {
   font: "chrome",
   align: "center",
   gradient: ["green", "magenta"],
@@ -63,6 +63,14 @@ async function handle() {
     await history();
   } else if (resp === "транзакция") {
     await transaction();
+  } else if (resp === "эмиссия") {
+    if ((await user.getUser()).type === "LOW")
+      console.log(
+        "Вы не являетесь пользователем, который может проводить эмиссию".red
+      );
+    else {
+      await transaction(true);
+    }
   } else {
     utils.printHelp();
   }
@@ -92,12 +100,25 @@ async function history() {
   else console.log(await user.getUser());
 }
 
-async function transaction() {
-  let transaction = await user.transaction(
-    await sr.input("text", "Получатель: "),
-    Number(await sr.input("text", "Количество: ")),
-    await sr.input("text", "Валюта: "),
-    await sr.input("text", "Комментарий: ")
-  );
-  console.log(transaction);
+async function transaction(emission) {
+  if (emission === true) {
+    let transaction = await user.transaction(
+      await sr.input("text", "Получатель: "),
+      Number(await sr.input("text", "Количество: ")),
+      (
+        await user.getUser()
+      ).type,
+      await sr.input("text", "Комментарий: "),
+      "emission-t"
+    );
+    console.log(transaction);
+  } else {
+    let transaction = await user.transaction(
+      await sr.input("text", "Получатель: "),
+      Number(await sr.input("text", "Количество: ")),
+      await sr.input("text", "Валюта: "),
+      await sr.input("text", "Комментарий: ")
+    );
+    console.log(transaction);
+  }
 }

@@ -12,6 +12,7 @@ module.exports = {
       "история",
       "баланс",
       "помощь",
+      "эмиссия (только для ЦБ)",
     ];
     for (let h of help) console.log(h.green);
   },
