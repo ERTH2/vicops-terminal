@@ -11,6 +11,9 @@ module.exports = {
       "транзакция",
       "история",
       "баланс",
+      "купить",
+      "продать",
+      "заявки (на продажу)",
       "помощь",
       "эмиссия (только для ЦБ)",
     ];
@@ -38,6 +41,16 @@ module.exports = {
             transaction.body.comment
           }`
         );
+    }
+  },
+  printBids: (bids) => {
+    for (let bid of bids) {
+      console.log(`${"--Заявка--".green}
+      Покупка: ${bid.toBuy.green}
+      Продажа: ${bid.toSell.red}
+      Количество для продажи: ${bid.amount} ${bid.toSell.red}
+      Курс: 1 ${bid.toSell} = ${bid.course} ${bid.toBuy}
+      `);
     }
   },
 };

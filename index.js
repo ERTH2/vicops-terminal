@@ -26,7 +26,7 @@ CFonts.say("VICOPS|terminal v1.4.0", {
   env: "node",
 });
 
-let user;
+let user = new vicopsApi();
 
 login();
 handle();
@@ -63,6 +63,40 @@ async function handle() {
     await history();
   } else if (resp === "транзакция") {
     await transaction();
+  } else if (resp === "продать") {
+    let toSell = await sr.input("text", "Что вы хотите продать: ");
+    let toBuy = await sr.input("text", "На что вы хотите обменять: ");
+    let amount = Number(
+      await sr.input("text", `Количество ${toSell} для продажи: `)
+    );
+    console.log(
+      `Актуальный курс обмена - 1 ${toBuy} = ${
+        (await user.getCourse(toBuy, toSell)).amount
+      } ${toSell}`
+    );
+
+    let course = Number(
+      await sr.input("text", `Ваш курс обмена 1 ${toBuy} = `)
+    );
+    let resp = await user.sell(toBuy, toSell, amount, course);
+    console.log(resp);
+  } else if (resp === "купить") {
+    let toBuy = await sr.input("text", "Что вы хотите купить: ");
+    let toSell = await sr.input("text", "Что вы хотите обменять: ");
+    let amount = Number(
+      await sr.input("text", `Количество ${toBuy} для покупки: `)
+    );
+    let course = Number(
+      await sr.input("text", `Ваш курс обмена 1 ${toBuy} = `)
+    );
+    let resp = await user.buy(toBuy, toSell, amount, course);
+    console.log(resp);
+  } else if (resp === "заявки") {
+    let toBuy = await sr.input("text", "Что вы хотите купить: ");
+    let toSell = await sr.input("text", "Что вы хотите обменять: ");
+
+    let resp = await user.getBids(toBuy, toSell);
+    utils.printBids(resp.bids);
   } else if (resp === "эмиссия") {
     if ((await user.getUser()).type === "LOW")
       console.log(

@@ -17,6 +17,6 @@
     "colors": "^1.4.0",
     "easy-readline": "^1.0.4",
     "node-localstorage": "^2.2.1",
-    "vicops-api": "^1.2.0"
+    "vicops-api": "^1.3.2"
   }
 }
