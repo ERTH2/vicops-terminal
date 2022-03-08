@@ -18,7 +18,7 @@ let ls = new LocalStorage(tpath);
 
 const CFonts = require("cfonts");
 
-CFonts.say("VICOPS|terminal v1.4.0", {
+CFonts.say("VICOPS|terminal v1.5.0", {
   font: "chrome",
   align: "center",
   gradient: ["green", "magenta"],
@@ -70,13 +70,13 @@ async function handle() {
       await sr.input("text", `Количество ${toSell} для продажи: `)
     );
     console.log(
-      `Актуальный курс обмена - 1 ${toBuy} = ${
+      `Актуальный курс обмена - 1 ${toSell} = ${
         (await user.getCourse(toBuy, toSell)).amount
-      } ${toSell}`
+      } ${toBuy}`
     );
 
     let course = Number(
-      await sr.input("text", `Ваш курс обмена 1 ${toBuy} = `)
+      await sr.input("text", `Ваш курс обмена 1 ${toSell} = `)
     );
     let resp = await user.sell(toBuy, toSell, amount, course);
     console.log(resp);
@@ -87,13 +87,13 @@ async function handle() {
       await sr.input("text", `Количество ${toBuy} для покупки: `)
     );
     let course = Number(
-      await sr.input("text", `Ваш курс обмена 1 ${toBuy} = `)
+      await sr.input("text", `Ваш курс обмена 1 ${toSell} = `)
     );
     let resp = await user.buy(toBuy, toSell, amount, course);
     console.log(resp);
   } else if (resp === "заявки") {
-    let toBuy = await sr.input("text", "Что вы хотите купить: ");
-    let toSell = await sr.input("text", "Что вы хотите обменять: ");
+    let toSell = await sr.input("text", "Что вы хотите купить: ");
+    let toBuy = await sr.input("text", "Что вы хотите обменять: ");
 
     let resp = await user.getBids(toBuy, toSell);
     utils.printBids(resp.bids);
