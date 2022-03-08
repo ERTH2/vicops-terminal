@@ -87,7 +87,7 @@ async function handle() {
       await sr.input("text", `Количество ${toBuy} для покупки: `)
     );
     let course = Number(
-      await sr.input("text", `Ваш курс обмена 1 ${toSell} = `)
+      await sr.input("text", `Ваш курс обмена 1 ${toBuy} = `)
     );
     let resp = await user.buy(toBuy, toSell, amount, course);
     console.log(resp);
