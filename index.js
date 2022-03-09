@@ -18,7 +18,7 @@ let ls = new LocalStorage(tpath);
 
 const CFonts = require("cfonts");
 
-CFonts.say("VICOPS|terminal v1.5.0", {
+CFonts.say("VICOPS|terminal v1.6.0", {
   font: "chrome",
   align: "center",
   gradient: ["green", "magenta"],
@@ -96,6 +96,9 @@ async function handle() {
     let toBuy = await sr.input("text", "Что вы хотите обменять: ");
 
     let resp = await user.getBids(toBuy, toSell);
+    utils.printBids(resp.bids);
+  } else if (resp === "все заявки") {
+    let resp = await user.getAllBids();
     utils.printBids(resp.bids);
   } else if (resp === "эмиссия") {
     if ((await user.getUser()).type === "LOW")
