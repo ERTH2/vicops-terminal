@@ -74,6 +74,8 @@ typings/
 
 # FuseBox cache
 .fusebox/
-VICOPS-term-1.0.0.exe
-*.exe
+
+
+
 vicops-terminal.zip
+/build

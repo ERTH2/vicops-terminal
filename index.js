@@ -1,14 +1,15 @@
 const colors = require("colors");
 const { vicopsApi } = require("vicops-api");
-const { Readline } = require("easy-readline");
 const utils = require("./utils");
 const fs = require("fs");
 const path = require("path");
-let sr = new Readline();
+
+const prompts = require("prompts");
+const jwt = require("jsonwebtoken");
 
 const LocalStorage = require("node-localstorage").LocalStorage;
 
-const tpath = path.join(process.env.APPDATA, "vicopsTerm");
+const tpath = path.join(process.env.APPDATA, "vicops2term");
 
 if (!fs.existsSync(tpath)) {
   fs.mkdirSync(tpath);
@@ -18,7 +19,7 @@ let ls = new LocalStorage(tpath);
 
 const CFonts = require("cfonts");
 
-CFonts.say("VICOPS|terminal v1.6.0", {
+CFonts.say("VICOPS|terminal v2.0.0", {
   font: "chrome",
   align: "center",
   gradient: ["green", "magenta"],
@@ -26,101 +27,179 @@ CFonts.say("VICOPS|terminal v1.6.0", {
   env: "node",
 });
 
+(async () => {
+  await auth();
+  await handle();
+})();
+
 let user = new vicopsApi();
 
-login();
-handle();
+async function auth() {
+  let users = getUsers();
+  if (users.length !== 0) {
+    const response = await prompts({
+      type: "select",
+      name: "user_name",
+      message: "Выберите пользователя для входа",
+      choices: users,
+    });
 
-async function handle() {
-  let resp = await sr.input("text", ">>> ");
-  resp = resp.toLowerCase();
+    let jwtT = ls.getItem(users[response.user_name]);
 
-  if (resp === "регистрация") {
-    let ulogin = await sr.input("text", "Введите логин: ");
-    let fpass = await sr.input("secure", "Введите пароль: ");
-    let spass = await sr.input("secure", "Введите пароль еще раз: ");
-    if (spass === fpass) {
-      user = new vicopsApi(ulogin, fpass);
-      let response = await user.register(
-        await sr.input("text", "Введите электронную почту для восстановления: ")
-      );
-      console.log(response);
-      ls.setItem("login", ulogin);
-      ls.setItem("password", fpass);
-    } else console.log("Пароли не совпадают".red);
-  } else if (resp === "войти") {
-    let ulogin = await sr.input("text", "Введите логин: ");
-    let pass = await sr.input("secure", "Введите пароль: ");
-    user = new vicopsApi(ulogin, pass);
-    await balances();
-    ls.setItem("login", ulogin);
-    ls.setItem("password", pass);
-  } else if (resp === "помощь") {
-    utils.printHelp();
-  } else if (resp === "баланс") {
-    await balances();
-  } else if (resp === "история") {
-    await history();
-  } else if (resp === "транзакция") {
-    await transaction();
-  } else if (resp === "продать") {
-    let toSell = await sr.input("text", "Что вы хотите продать: ");
-    let toBuy = await sr.input("text", "На что вы хотите обменять: ");
-    let amount = Number(
-      await sr.input("text", `Количество ${toSell} для продажи: `)
-    );
-    console.log(
-      `Актуальный курс обмена - 1 ${toSell} = ${
-        (await user.getCourse(toBuy, toSell)).amount
-      } ${toBuy}`
-    );
-
-    let course = Number(
-      await sr.input("text", `Ваш курс обмена 1 ${toSell} = `)
-    );
-    let resp = await user.sell(toBuy, toSell, amount, course);
-    console.log(resp);
-  } else if (resp === "купить") {
-    let toBuy = await sr.input("text", "Что вы хотите купить: ");
-    let toSell = await sr.input("text", "Что вы хотите обменять: ");
-    let amount = Number(
-      await sr.input("text", `Количество ${toBuy} для покупки: `)
-    );
-    let course = Number(
-      await sr.input("text", `Ваш курс обмена 1 ${toBuy} = `)
-    );
-    let resp = await user.buy(toBuy, toSell, amount, course);
-    console.log(resp);
-  } else if (resp === "заявки") {
-    let toSell = await sr.input("text", "Что вы хотите купить: ");
-    let toBuy = await sr.input("text", "Что вы хотите обменять: ");
-
-    let resp = await user.getBids(toBuy, toSell);
-    utils.printBids(resp.bids);
-  } else if (resp === "все заявки") {
-    let resp = await user.getAllBids();
-    utils.printBids(resp.bids);
-  } else if (resp === "эмиссия") {
-    if ((await user.getUser()).type === "LOW")
-      console.log(
-        "Вы не являетесь пользователем, который может проводить эмиссию".red
-      );
-    else {
-      await transaction(true);
+    if (jwt.decode(jwtT).exp < Date.now() / 1000) {
+      console.log("Токен истек вам нужно войти снова");
+      login();
+    } else {
+      user.connectJwt(jwtT);
     }
+    console.log("Вы вошли автоматически!".green, "\n");
   } else {
-    utils.printHelp();
+    console.log("Пользователей не найдено, войдите или зарегистрируйтесь.".red);
+
+    const response = await prompts({
+      type: "select",
+      name: "method",
+      message: "",
+      choices: ["Войти", "Зарегистрироваться"],
+    });
+
+    if (response.method === 0) {
+      await login();
+    } else {
+      await register();
+    }
   }
-  handle();
+
+  let userData = await user.getUser();
+  utils.printUserData(userData);
+}
+
+function getUsers() {
+  let users = ls.getItem("users");
+  if (!users) {
+    users = "[]";
+    ls.setItem("users", users);
+  }
+  return JSON.parse(users);
 }
 
 async function login() {
-  if (ls.getItem("login")) {
-    user = new vicopsApi(ls.getItem("login"), ls.getItem("password"));
-    console.log("Вы вошли автоматически!".green);
-  } else {
-    console.log("Войдите или зарегистрируйтесь (напишите помощь).".red);
+  const r = await prompts([
+    {
+      type: "text",
+      name: "_id",
+      message: "Введите ваш id в vicops",
+    },
+    {
+      type: "password",
+      name: "pass",
+      message: "Введите пароль",
+    },
+  ]);
+
+  let resp = await user.login(r._id, r.pass);
+  if (resp.code === "denied") {
+    console.log(resp.msg);
+    await login();
+    return;
   }
+
+  await addUser(resp);
+}
+
+async function addUser(resp) {
+  let userData = await user.getUser();
+  let users = getUsers();
+  let username = `${userData.name}.${userData.second_name}.${userData._id}`;
+
+  users.push(username);
+  ls.setItem("users", JSON.stringify(users));
+  ls.setItem(username, resp.token);
+}
+
+async function register() {
+  const r = await prompts([
+    {
+      type: "text",
+      name: "name",
+      message: "Имя",
+    },
+    {
+      type: "text",
+      name: "second_name",
+      message: "Фамилия",
+    },
+    {
+      type: "text",
+      name: "country",
+      message: "Страна",
+    },
+    {
+      type: "select",
+      name: "type",
+      choices: [
+        {
+          title: "Гражданин",
+          description: "Простой гражданин страны",
+          value: "citizen",
+        },
+        { title: "Компания", value: "company" },
+        { title: "Центральный Банк", value: "cb" },
+      ],
+      message: "Тип пользователя",
+    },
+    {
+      type: "text",
+      name: "contact",
+      message: "Ваши контакты (вк, почта, телеграмм)",
+    },
+    {
+      type: "password",
+      name: "fpass",
+      message: "Введите пароль",
+    },
+    {
+      type: "password",
+      name: "spass",
+      message: "Введите пароль еще раз",
+    },
+  ]);
+
+  if (r.spass === r.fpass) {
+    let resp = await user.register(
+      r.name,
+      r.second_name,
+      r.fpass,
+      r.country,
+      r.type,
+      r.contact
+    );
+
+    if (resp.code === "denied") {
+      console.log(resp.msg);
+      await register();
+      return;
+    } else {
+      await addUser(resp);
+    }
+  } else {
+    console.log("Пароли не совпадают".red);
+    await register();
+    return;
+  }
+}
+
+async function handle() {
+  const r = await prompts({
+    type: "autocomplete",
+    name: "data",
+    message: "",
+    choices: [{ title: "Войти" }, { title: "Транзакция" }],
+  });
+
+  console.log(r.data);
+
+  handle();
 }
 
 async function balances() {
