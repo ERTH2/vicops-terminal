@@ -15,6 +15,8 @@ if (!fs.existsSync(tpath)) {
   fs.mkdirSync(tpath);
 }
 
+const pr = require("./propmts.json");
+
 let ls = new LocalStorage(tpath);
 
 const CFonts = require("cfonts");
@@ -81,6 +83,19 @@ function getUsers() {
     ls.setItem("users", users);
   }
   return JSON.parse(users);
+}
+
+async function handle() {
+  const r = await prompts({
+    type: "autocomplete",
+    name: "data",
+    message: "",
+    choices: pr.commands,
+  });
+
+  console.log(r.data);
+
+  handle();
 }
 
 async function login() {
@@ -187,19 +202,6 @@ async function register() {
     await register();
     return;
   }
-}
-
-async function handle() {
-  const r = await prompts({
-    type: "autocomplete",
-    name: "data",
-    message: "",
-    choices: [{ title: "Войти" }, { title: "Транзакция" }],
-  });
-
-  console.log(r.data);
-
-  handle();
 }
 
 async function balances() {
