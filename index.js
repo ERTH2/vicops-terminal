@@ -72,6 +72,10 @@ async function auth() {
     }
   }
 
+  await printUserData();
+}
+
+async function printUserData() {
   let userData = await user.getUser();
   utils.printUserData(userData);
 }
@@ -93,7 +97,21 @@ async function handle() {
     choices: pr.commands,
   });
 
-  console.log(r.data);
+  if (r.data === "Баланс") {
+    await printBalances();
+  } else if (r.data === "История транзакций") {
+    await history();
+  } else if (r.data === "Информация пользователя") {
+    await printUserData();
+  } else if (r.data === "Перевод") {
+    await transaction();
+  } else if (r.data === "Создать новый счёт") {
+    console.log("Сказал же скоро будет");
+  } else if (r.data === "Войти") {
+    await login();
+  } else if (r.data === "Регистрация") {
+    await register();
+  }
 
   handle();
 }
@@ -204,39 +222,78 @@ async function register() {
   }
 }
 
-async function balances() {
-  let balances = (await user.getUser()).private;
-  if (balances) balances = balances.balances;
-  if (balances) utils.printBal(balances);
-  else console.log(await user.getUser());
+async function printBalances() {
+  let balances = await user.getBalances();
+  if (balances.code != "denied") {
+    utils.printBal(balances);
+  } else {
+    console.log(balances.msg.red);
+  }
 }
 
 async function history() {
-  let transactions = (await user.getUser()).private;
-  if (transactions) transactions = transactions.transactions;
-  if (transactions) utils.printTrans(transactions, user.name);
-  else console.log(await user.getUser());
+  let transactions = await user.getTransactions();
+  if (transactions.code != "denied") {
+    utils.printTrans(transactions, jwt.decode(user.jwt)._id);
+  } else {
+    console.log(transactions.msg.red);
+  }
 }
 
-async function transaction(emission) {
-  if (emission === true) {
-    let transaction = await user.transaction(
-      await sr.input("text", "Получатель: "),
-      Number(await sr.input("text", "Количество: ")),
-      (
-        await user.getUser()
-      ).type,
-      await sr.input("text", "Комментарий: "),
-      "emission-t"
-    );
-    console.log(transaction);
+async function transaction() {
+  const r = await prompts([
+    {
+      type: "text",
+      name: "recipient_id",
+      message: "Получатель(номер счета)",
+    },
+    {
+      type: "number",
+      name: "amount",
+      message: "Количество",
+    },
+    {
+      type: "text",
+      name: "currency_id",
+      message: "Валюта",
+    },
+    {
+      type: "text",
+      name: "description",
+      message: "Комментарий",
+    },
+    {
+      type: "select",
+      name: "type",
+      choices: [
+        {
+          title: "Перевод",
+          description: "Перевод с счета на счет",
+          value: "transfer",
+        },
+        {
+          title: "Эмиссия",
+          value: "issue",
+          description: "Доступно только для ЦБ",
+        },
+      ],
+      message: "Тип транзакции",
+    },
+  ]);
+
+  let userData = await user.getUser();
+
+  let resp = await user.transaction(
+    r.recipient_id,
+    r.amount,
+    r.currency_id,
+    `${userData.name} ${userData.second_name[0]}.: "${r.description}"`,
+    r.type
+  );
+
+  if (resp.code != "denied") {
+    console.log("Перевод был выполнен".green);
   } else {
-    let transaction = await user.transaction(
-      await sr.input("text", "Получатель: "),
-      Number(await sr.input("text", "Количество: ")),
-      await sr.input("text", "Валюта: "),
-      await sr.input("text", "Комментарий: ")
-    );
-    console.log(transaction);
+    console.log(resp.msg.red);
   }
 }

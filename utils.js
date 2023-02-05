@@ -17,43 +17,24 @@ module.exports = {
       console.log("Ваш аккаунт заблокирован в vicops".bgRed.white);
     }
   },
-  printHelp: () => {
-    let help = [
-      "регистрация",
-      "войти",
-      "транзакция",
-      "история",
-      "баланс",
-      "купить",
-      "продать",
-      "заявки (на продажу)",
-      "все заявки (на продажу)",
-      "помощь",
-      "эмиссия (только для ЦБ)",
-    ];
-    for (let h of help) console.log(h.green);
-  },
   printTrans: (transactions, name) => {
     for (let transaction of transactions) {
-      if (transaction.body.recipient === name)
+      if (transaction.recipient_id === name)
         console.log(
           `${
-            `+ ${transaction.body.amount.toFixed(5)} ${
-              transaction.body.currency
-            }`.green
-          } от ${transaction.body.sender}. Комментарий: ${
-            transaction.body.comment
-          }`
+            `+ ${transaction.amount.toFixed(5)} ${transaction.currency_id}`
+              .green
+          } от ${transaction.sender_id}. (${
+            transaction.comment || "комментария нет"
+          })`
         );
       else
         console.log(
           `${
-            `- ${transaction.body.amount.toFixed(5)} ${
-              transaction.body.currency
-            }`.red
-          } отправлено ${transaction.body.recipient}. Комментарий: ${
-            transaction.body.comment
-          }`
+            `- ${transaction.amount.toFixed(5)} ${transaction.currency_id}`.red
+          } отправлено ${transaction.recipient_id}. (${
+            transaction.comment || "комментария нет"
+          })`
         );
     }
   },
