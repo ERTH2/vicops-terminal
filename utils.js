@@ -25,7 +25,7 @@ module.exports = {
             `+ ${transaction.amount.toFixed(5)} ${transaction.currency_id}`
               .green
           } от ${transaction.sender_id}. (${
-            transaction.comment || "комментария нет"
+            transaction.description || "комментария нет"
           })`
         );
       else
@@ -33,7 +33,7 @@ module.exports = {
           `${
             `- ${transaction.amount.toFixed(5)} ${transaction.currency_id}`.red
           } отправлено ${transaction.recipient_id}. (${
-            transaction.comment || "комментария нет"
+            transaction.description || "комментария нет"
           })`
         );
     }
