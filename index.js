@@ -96,21 +96,35 @@ async function handle() {
     message: "",
     choices: pr.commands,
   });
-
-  if (r.data === "Баланс") {
-    await printBalances();
-  } else if (r.data === "История транзакций") {
-    await history();
-  } else if (r.data === "Информация пользователя") {
-    await printUserData();
-  } else if (r.data === "Перевод") {
-    await transaction();
-  } else if (r.data === "Создать новый счёт") {
-    console.log("Сказал же скоро будет");
-  } else if (r.data === "Войти") {
-    await login();
-  } else if (r.data === "Регистрация") {
-    await register();
+  switch (r.data) {
+    case "Баланс":
+      await printBalances();
+      break;
+    case "История транзакций":
+      await history();
+      break;
+    case "Информация пользователя":
+      await printUserData();
+      break;
+    case "Перевод":
+      await transaction();
+      break;
+    case "Создать новый счёт":
+      console.log("Сказал же скоро будет");
+      break;
+    case "Существующие валюты":
+      await printAllCurrencies();
+      break;
+    case "Войти":
+      await login();
+      break;
+    case "Регистрация":
+      await register();
+      break;
+    case "Выйти":
+      process.exit();
+    default:
+      console.log("Неизвестная команда");
   }
 
   handle();
@@ -237,6 +251,15 @@ async function history() {
     utils.printTrans(transactions, jwt.decode(user.jwt)._id);
   } else {
     console.log(transactions.msg.red);
+  }
+}
+
+async function printAllCurrencies() {
+  let currencies = await user.getCurrencies();
+  if (currencies.code != "denied") {
+    utils.printCurrencies(currencies);
+  } else {
+    console.log(currencies.msg.red);
   }
 }
 

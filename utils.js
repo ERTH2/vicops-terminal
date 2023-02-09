@@ -38,4 +38,13 @@ module.exports = {
         );
     }
   },
+  printCurrencies: (currencies) => {
+    for (let currency of currencies) {
+      console.log(
+        `${currency.name.green} (${currency._id}/${currency.type}) - ${
+          currency.description || "описания нет"
+        }`
+      );
+    }
+  },
 };
