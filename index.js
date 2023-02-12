@@ -21,7 +21,7 @@ let ls = new LocalStorage(tpath);
 
 const CFonts = require("cfonts");
 
-CFonts.say("VICOPS|terminal v2.0.1", {
+CFonts.say("VICOPS|terminal v2.3.0-alpha-use", {
   font: "chrome",
   align: "center",
   gradient: ["green", "magenta"],
@@ -108,6 +108,12 @@ async function handle() {
       break;
     case "Перевод":
       await transaction();
+      break;
+    case "Продать":
+      await placeOrder();
+      break;
+    case "Купить":
+      await buyOrder();
       break;
     case "Создать новый счёт":
       console.log("Сказал же скоро будет");
@@ -263,6 +269,90 @@ async function printAllCurrencies() {
   }
 }
 
+//function to place order in exchange
+async function placeOrder() {
+  let currencies = await user.getCurrencies();
+  currencies = currencies.map((curr) => {
+    return {
+      title: `${curr._id} - ${curr.name}`,
+      value: curr._id,
+      description: curr.description,
+    };
+  });
+
+  const r = await prompts([
+    {
+      type: "select",
+      name: "sell_currency_id",
+      message: "Идентификатор продавемого ресурса",
+      choices: currencies,
+    },
+    {
+      type: "select",
+      name: "buy_currency_id",
+      message: "Идентификатор покупаемого ресурса",
+      choices: currencies,
+    },
+    {
+      type: "number",
+      name: "sell_amount",
+      message: "Количество продаваемого ресурса",
+      increment: 0.001,
+    },
+    {
+      type: "number",
+      name: "buy_amount",
+      message: "Количество покупаемого ресурса",
+      increment: 0.001,
+    },
+  ]);
+
+  let resp = await user.placeOrder(
+    r.buy_currency_id,
+    r.sell_currency_id,
+    r.buy_amount,
+    r.sell_amount
+  );
+
+  if (resp.code !== "denied") {
+    console.log("Заявка на продажу выставлена");
+  } else {
+    console.log(resp.msg.red);
+  }
+}
+
+//function to buy order
+async function buyOrder() {
+  let orders = await user.getOrders();
+  orders = orders.map((order) => {
+    return {
+      title: `Продажа ${order.sell_amount} ${order.sell_currency_id} за ${order.buy_amount} ${order.buy_currency_id}`,
+      value: order._id,
+      description: `1 ${order.buy_currency_id} = ${
+        order.sell_amount / order.buy_amount
+      } ${order.sell_currency_id} \n1 ${order.sell_currency_id} = ${
+        order.buy_amount / order.sell_amount
+      } ${order.buy_currency_id}`,
+    };
+  });
+
+  const r = await prompts([
+    {
+      type: "select",
+      name: "order_id",
+      message: "Идентификатор заявки",
+      choices: orders,
+    },
+  ]);
+
+  let resp = await user.buyOrder(r.order_id);
+  if (resp.code !== "denied") {
+    console.log("Заявка куплена");
+  } else {
+    console.log(resp.msg.red);
+  }
+}
+
 async function transaction() {
   const r = await prompts([
     {
@@ -274,7 +364,7 @@ async function transaction() {
       type: "number",
       name: "amount",
       min: 0,
-      increment: 0.1,
+      increment: 0.001,
       message: "Количество",
     },
     {
@@ -316,7 +406,7 @@ async function transaction() {
     r.type
   );
 
-  if (resp.code != "denied") {
+  if (resp.code !== "denied") {
     console.log("Перевод был выполнен".green);
   } else {
     console.log(resp.msg.red);
