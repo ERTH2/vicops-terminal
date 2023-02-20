@@ -1,6 +1,6 @@
 {
   "name": "vicops-terminal",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "Terminal for vicops. Used vicops-api",
   "main": "index.js",
   "scripts": {

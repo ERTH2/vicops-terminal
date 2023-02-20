@@ -21,7 +21,7 @@ let ls = new LocalStorage(tpath);
 
 const CFonts = require("cfonts");
 
-CFonts.say("VICOPS|terminal v2.3.0-alpha-use", {
+CFonts.say("VICOPS|terminal v2.3.1-open-beta", {
   font: "chrome",
   align: "center",
   gradient: ["green", "magenta"],
@@ -114,9 +114,6 @@ async function handle() {
       break;
     case "Купить":
       await buyOrder();
-      break;
-    case "Создать новый счёт":
-      console.log("Сказал же скоро будет");
       break;
     case "Существующие валюты":
       await printAllCurrencies();
