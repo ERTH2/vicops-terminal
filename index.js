@@ -21,7 +21,9 @@ let ls = new LocalStorage(tpath);
 
 const CFonts = require("cfonts");
 
-CFonts.say("VICOPS|terminal v2.3.1-open-beta", {
+let package_info = require("./package.json");
+
+CFonts.say(`VICOPS|terminal v${package_info.version}`, {
   font: "chrome",
   align: "center",
   gradient: ["green", "magenta"],
@@ -37,16 +39,27 @@ CFonts.say("VICOPS|terminal v2.3.1-open-beta", {
 let user = new vicopsApi();
 
 async function auth() {
-  let users = getUsers();
-  if (users.length !== 0) {
+  let users = await getUsers();
+  let users_ids = Object.keys(users);
+  let usersData = Object.values(users);
+
+  userChoices = usersData.map((user) => {
+    return {
+      title: `${user.name} ${user.second_name}`,
+      value: user,
+      description: `(${user._id}) ${user.type} ${user.country}`,
+    };
+  });
+
+  if (users_ids.length !== 0) {
     const response = await prompts({
       type: "select",
-      name: "user_name",
+      name: "user_data",
       message: "Выберите пользователя для входа",
-      choices: users,
+      choices: userChoices,
     });
 
-    let jwtT = ls.getItem(users[response.user_name]);
+    let jwtT = response.user_data.jwt;
 
     if (jwt.decode(jwtT).exp < Date.now() / 1000) {
       console.log("Токен истек вам нужно войти снова");
@@ -80,13 +93,54 @@ async function printUserData() {
   utils.printUserData(userData);
 }
 
-function getUsers() {
-  let users = ls.getItem("users");
-  if (!users) {
-    users = "[]";
+async function getUsers() {
+  let users = ls.getItem("users") || null;
+  if (users === null) {
+    users = "{}";
     ls.setItem("users", users);
   }
-  return JSON.parse(users);
+
+  users = JSON.parse(users);
+
+  if (Array.isArray(users)) {
+    console.log("Переформатирую данные пользователей...");
+    ls.setItem("users_old", JSON.stringify(users));
+    let users_arr = users;
+    users_arr = users_arr.map(async (usera) => {
+      let jwtT = ls.getItem(usera);
+      jwtD = jwt.decode(jwtT);
+
+      if (jwtD.exp < Date.now() / 1000) {
+        console.log(
+          "Токен одного из пользователей истек вам нужно войти снова"
+        );
+
+        return false;
+      } else {
+        let usertoprep = new vicopsApi();
+        await usertoprep.connectJwt(jwtT);
+
+        let userData = await usertoprep.getUser();
+        console.log(`${userData.name} ${userData.second_name} добавлен`);
+
+        userData.jwt = jwtT;
+
+        return userData;
+      }
+    });
+
+    users_arr = await Promise.all(users_arr);
+    users_arr = users_arr.filter(Boolean);
+
+    users = {};
+
+    users_arr.forEach((element) => {
+      users[element._id] = element;
+    });
+    ls.setItem("users", JSON.stringify(users));
+  }
+
+  return users;
 }
 
 async function handle() {
@@ -159,12 +213,11 @@ async function login() {
 
 async function addUser(resp) {
   let userData = await user.getUser();
-  let users = getUsers();
-  let username = `${userData.name}.${userData.second_name}.${userData._id}`;
-
-  users.push(username);
+  let users = await getUsers();
+  console.log(userData);
+  userData.jwt = user.jwt;
+  users[userData._id] = userData;
   ls.setItem("users", JSON.stringify(users));
-  ls.setItem(username, resp.token);
 }
 
 async function register() {
