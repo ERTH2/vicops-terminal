@@ -3,6 +3,7 @@ const { vicopsApi } = require("vicops-api");
 const utils = require("./utils");
 const fs = require("fs");
 const path = require("path");
+const fetch = require("node-fetch");
 
 const prompts = require("prompts");
 const jwt = require("jsonwebtoken");
@@ -23,20 +24,38 @@ const CFonts = require("cfonts");
 
 let package_info = require("./package.json");
 
-CFonts.say(`VICOPS|terminal v${package_info.version}`, {
-  font: "chrome",
+CFonts.say(`VICOPS-terminal|v${package_info.version}`, {
+  font: "console",
   align: "center",
-  gradient: ["green", "magenta"],
+  gradient: ["green", "cyan"],
   transitionGradient: true,
   env: "node",
 });
 
 (async () => {
+  await checkVersion();
   await auth();
   await handle();
 })();
 
 let user = new vicopsApi();
+
+//function to check version from github package.json and print message to update if needed
+async function checkVersion() {
+  //get info fetched from package.json https://raw.githubusercontent.com/ERTH2/vicops-terminal/main/package.json
+  let package = await (
+    await fetch(
+      "https://raw.githubusercontent.com/ERTH2/vicops-terminal/main/package.json"
+    )
+  ).json();
+
+  if (package.version !== package_info.version) {
+    console.log(
+      `VICOPS-terminal v${package.version} Доступен! \nСкачать: https://github.com/ERTH2/vicops-terminal/releases/tag/${package.version}\n`
+        .bgGreen
+    );
+  }
+}
 
 async function auth() {
   let users = await getUsers();
@@ -332,13 +351,13 @@ async function placeOrder() {
 
   const r = await prompts([
     {
-      type: "select",
+      type: "autocomplete",
       name: "sell_currency_id",
       message: "Идентификатор продавемого ресурса",
       choices: currencies,
     },
     {
-      type: "select",
+      type: "autocomplete",
       name: "buy_currency_id",
       message: "Идентификатор покупаемого ресурса",
       choices: currencies,
@@ -347,13 +366,13 @@ async function placeOrder() {
       type: "number",
       name: "sell_amount",
       message: "Количество продаваемого ресурса",
-      increment: 0.001,
+      increment: 0.01,
     },
     {
       type: "number",
       name: "buy_amount",
       message: "Количество покупаемого ресурса",
-      increment: 0.001,
+      increment: 0.01,
     },
   ]);
 
@@ -388,7 +407,7 @@ async function buyOrder() {
 
   const r = await prompts([
     {
-      type: "select",
+      type: "autocomplete",
       name: "order_id",
       message: "Идентификатор заявки",
       choices: orders,
