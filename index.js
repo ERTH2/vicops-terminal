@@ -168,6 +168,7 @@ async function handle() {
     name: "data",
     message: "",
     choices: pr.commands,
+    suggest,
   });
   switch (r.data) {
     case "Баланс":
@@ -338,16 +339,19 @@ async function printAllCurrencies() {
   }
 }
 
-//function to place order in exchange
-async function placeOrder() {
+async function getChoicesOfCurrencies() {
   let currencies = await user.getCurrencies();
-  currencies = currencies.map((curr) => {
+  return currencies.map((curr) => {
     return {
       title: `${curr._id} - ${curr.name}`,
       value: curr._id,
       description: curr.description,
     };
   });
+}
+//function to place order in exchange
+async function placeOrder() {
+  let currencies = await getChoicesOfCurrencies();
 
   const r = await prompts([
     {
@@ -355,12 +359,14 @@ async function placeOrder() {
       name: "sell_currency_id",
       message: "Идентификатор продавемого ресурса",
       choices: currencies,
+      suggest,
     },
     {
       type: "autocomplete",
       name: "buy_currency_id",
       message: "Идентификатор покупаемого ресурса",
       choices: currencies,
+      suggest,
     },
     {
       type: "number",
@@ -376,18 +382,34 @@ async function placeOrder() {
     },
   ]);
 
-  let resp = await user.placeOrder(
-    r.buy_currency_id,
-    r.sell_currency_id,
-    r.buy_amount,
-    r.sell_amount
-  );
+  const check = await prompts([
+    {
+      type: "confirm",
+      name: "confirm",
+      message: "Вы уверены, что хотите выставить заявку на продажу?",
+    },
+  ]);
 
-  if (resp.code !== "denied") {
-    console.log("Заявка на продажу выставлена");
-  } else {
-    console.log(resp.msg.red);
+  if (check.confirm) {
+    let resp = await user.placeOrder(
+      r.buy_currency_id,
+      r.sell_currency_id,
+      r.buy_amount,
+      r.sell_amount
+    );
+
+    if (resp.code !== "denied") {
+      console.log("Заявка на продажу выставлена");
+    } else {
+      console.log(resp.msg.red);
+    }
   }
+}
+
+function suggest(input, choices) {
+  return choices.filter((choice) => {
+    return choice.title.toLowerCase().includes(input.toLowerCase());
+  });
 }
 
 //function to buy order
@@ -411,14 +433,26 @@ async function buyOrder() {
       name: "order_id",
       message: "Идентификатор заявки",
       choices: orders,
+      suggest,
     },
   ]);
 
-  let resp = await user.buyOrder(r.order_id);
-  if (resp.code !== "denied") {
-    console.log("Заявка куплена");
-  } else {
-    console.log(resp.msg.red);
+  const check = await prompts([
+    {
+      type: "confirm",
+      name: "confirm",
+      message: "Вы уверены, что хотите купить эту заявку?",
+      initial: false,
+    },
+  ]);
+
+  if (check.confirm) {
+    let resp = await user.buyOrder(r.order_id);
+    if (resp.code !== "denied") {
+      console.log("Заявка куплена");
+    } else {
+      console.log(resp.msg.red);
+    }
   }
 }
 
@@ -437,9 +471,11 @@ async function transaction() {
       message: "Количество",
     },
     {
-      type: "text",
+      type: "autocomplete",
       name: "currency_id",
       message: "Валюта",
+      choices: await getChoicesOfCurrencies(),
+      suggest,
     },
     {
       type: "text",
@@ -465,19 +501,30 @@ async function transaction() {
     },
   ]);
 
-  let userData = await user.getUser();
+  const check = await prompts([
+    {
+      type: "confirm",
+      name: "confirm",
+      message: "Вы уверены, что хотите совершить транзакцию?",
+      initial: false,
+    },
+  ]);
 
-  let resp = await user.transaction(
-    r.recipient_id,
-    r.amount,
-    r.currency_id,
-    `${userData.name} ${userData.second_name[0]}.: "${r.description}"`,
-    r.type
-  );
+  if (check.confirm) {
+    let userData = await user.getUser();
 
-  if (resp.code !== "denied") {
-    console.log("Перевод был выполнен".green);
-  } else {
-    console.log(resp.msg.red);
+    let resp = await user.transaction(
+      r.recipient_id,
+      r.amount,
+      r.currency_id,
+      `${userData.name} ${userData.second_name}: "${r.description}"`,
+      r.type
+    );
+
+    if (resp.code !== "denied") {
+      console.log("Перевод был выполнен".green);
+    } else {
+      console.log(resp.msg.red);
+    }
   }
 }
