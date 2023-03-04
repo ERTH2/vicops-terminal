@@ -4,7 +4,7 @@ const utils = require("./utils");
 const fs = require("fs");
 const path = require("path");
 const fetch = require("node-fetch");
-
+const charts = require("asciichart");
 const prompts = require("prompts");
 const jwt = require("jsonwebtoken");
 
@@ -198,6 +198,9 @@ async function handle() {
     case "Регистрация":
       await register();
       break;
+    case "Курс":
+      await CourseCharts();
+      break;
     case "Выйти":
       process.exit();
     default:
@@ -310,6 +313,61 @@ async function register() {
     await register();
     return;
   }
+}
+
+async function CourseCharts() {
+  let currencies = await getChoicesOfCurrencies();
+
+  const r = await prompts([
+    {
+      type: "autocomplete",
+      name: "buy_currency_id",
+      message: "Идентификатор покупаемого ресурса",
+      choices: currencies,
+      suggest,
+    },
+    {
+      type: "autocomplete",
+      name: "sell_currency_id",
+      message: "Идентификатор продавемого ресурса",
+      choices: currencies,
+      suggest,
+    },
+  ]);
+
+  let orders = await user.getBoughtOrdersByCurrency(
+    r.buy_currency_id,
+    r.sell_currency_id
+  );
+
+  if (orders.length === 0) {
+    console.log("Курс пока не сформирован".red);
+    return;
+  }
+
+  let chart = orders.map((order) => {
+    return order.sell_amount / order.buy_amount;
+  });
+
+  let chartRev = chart.map((course) => {
+    return 1 / course;
+  });
+
+  console.log(`Курс ${r.buy_currency_id}/${r.sell_currency_id}`);
+  console.log(charts.plot(chart, { height: 6 }));
+  console.log(
+    `1 ${r.buy_currency_id} = ${chart[chart.length - 1]} ${
+      r.sell_currency_id
+    }\n\n`
+  );
+
+  console.log(`Курс ${r.sell_currency_id}/${r.buy_currency_id}`);
+  console.log(charts.plot(chartRev, { height: 6 }));
+  console.log(
+    `1 ${r.sell_currency_id} = ${chartRev[chartRev.length - 1]} ${
+      r.buy_currency_id
+    }\n\n`
+  );
 }
 
 async function printBalances() {

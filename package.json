@@ -1,6 +1,6 @@
 {
   "name": "vicops-terminal",
-  "version": "2.5.1-open-beta",
+  "version": "2.6.0-open-beta",
   "description": "Terminal for vicops. Used vicops-api",
   "main": "index.js",
   "scripts": {
@@ -15,6 +15,7 @@
   "author": "artegoser",
   "license": "MIT",
   "dependencies": {
+    "asciichart": "^1.5.25",
     "cfonts": "^2.10.0",
     "colors": "^1.4.0",
     "jsonwebtoken": "^9.0.0",
@@ -22,6 +23,6 @@
     "node-localstorage": "^2.2.1",
     "prompts": "^2.4.2",
     "table": "^6.8.1",
-    "vicops-api": "^2.3.0"
+    "vicops-api": "^2.4.0"
   }
 }
